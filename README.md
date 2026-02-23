@@ -1,4 +1,4 @@
-# Composio Tool Router Plugin for Clawdbot
+# Composio Tool Router Plugin for OpenClaw
 
 Access 1000+ third-party tools through Composio's unified Tool Router interface.
 
@@ -21,11 +21,11 @@ Gmail, Slack, GitHub, Notion, Linear, Jira, HubSpot, Salesforce, Google Drive, A
 export COMPOSIO_API_KEY=your-api-key
 ```
 
-### Option 2: Clawdbot Config
+### Option 2: Openclaw Config
 
 ```bash
-clawdbot config set plugins.composio.enabled true
-clawdbot config set plugins.composio.apiKey "your-api-key"
+openclaw config set plugins.composio.enabled true
+openclaw config set plugins.composio.apiKey "your-api-key"
 ```
 
 Get your API key from [platform.composio.dev/settings](https://platform.composio.dev/settings).
@@ -34,22 +34,22 @@ Get your API key from [platform.composio.dev/settings](https://platform.composio
 
 ```bash
 # List available toolkits
-clawdbot composio list
+openclaw composio list
 
 # Check connection status
-clawdbot composio status
-clawdbot composio status github
+openclaw composio status
+openclaw composio status github
 
 # Connect to a toolkit (opens auth URL)
-clawdbot composio connect github
-clawdbot composio connect gmail
+openclaw composio connect github
+openclaw composio connect gmail
 
 # Disconnect from a toolkit
-clawdbot composio disconnect github
+openclaw composio disconnect github
 
 # Search for tools
-clawdbot composio search "send email"
-clawdbot composio search "create issue" --toolkit github
+openclaw composio search "send email"
+openclaw composio search "create issue" --toolkit github
 ```
 
 ## Agent Tools

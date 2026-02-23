@@ -1,14 +1,28 @@
 {
-    "name": "@openclaw/composio",
-    "version": "2026.1.26",
-    "type": "module",
-    "description": "Moltbot Composio Tool Router integration - access 1000+ third-party tools",
-    "dependencies": {
-      "@composio/core": "^0.5.5",
-      "@sinclair/typebox": "0.34.47",
-      "zod": "^4.3.6"
-    },
-    "moltbot": {
-      "extensions": ["./index.ts"]
-    }
+  "name": "@composio/openclaw-plugin",
+  "version": "2026.1.26",
+  "type": "module",
+  "description": "OpenClaw Composio plugin - access 1000+ third-party tools via Composio Tool Router",
+  "keywords": ["openclaw", "composio", "tool-router", "agents", "mcp", "plugin"],
+  "homepage": "https://github.com/ComposioHQ/openclaw-composio-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ComposioHQ/openclaw-composio-plugin.git"
+  },
+  "license": "MIT",
+  "files": [
+    "index.ts",
+    "src",
+    "skills",
+    "openclaw.plugin.json",
+    "README.md"
+  ],
+  "openclaw": {
+    "extensions": ["./index.ts"]
+  },
+  "dependencies": {
+    "@composio/core": "^0.5.5",
+    "@sinclair/typebox": "0.34.47",
+    "zod": "^4.3.6"
   }
+}
