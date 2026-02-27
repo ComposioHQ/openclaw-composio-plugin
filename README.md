@@ -1,130 +1,62 @@
-# Composio Tool Router Plugin for OpenClaw
+# Composio Plugin for OpenClaw
 
-Access 1000+ third-party tools through Composio's unified Tool Router interface.
+Access 1000+ third-party tools via Composio MCP — Gmail, Slack, GitHub, Notion, Linear, Jira, HubSpot, Salesforce, Google Drive, and more.
 
-## Features
+## Install
 
-- **Search Tools**: Find tools by describing what you want to accomplish
-- **Execute Tools**: Run any tool with authenticated connections
-- **Multi-Execute**: Run up to 50 tools in parallel
-- **Connection Management**: Connect to toolkits via OAuth or API keys
+```bash
+openclaw plugins install @composio/openclaw-plugin
+```
 
-## Supported Integrations
+## Setup
 
-Gmail, Slack, GitHub, Notion, Linear, Jira, HubSpot, Salesforce, Google Drive, Asana, Trello, and 1000+ more.
-
-## Configuration
+1. Log in at [dashboard.composio.dev](https://dashboard.composio.dev)
+2. Choose your preferred client (OpenClaw, Claude Code, Cursor, etc.)
+3. Copy your consumer key (`ck_...`)
 
 ### Option 1: Environment Variable
 
 ```bash
-export COMPOSIO_API_KEY=your-api-key
+export COMPOSIO_CONSUMER_KEY=ck_your_key_here
 ```
 
-### Option 2: Openclaw Config
+### Option 2: OpenClaw Config
 
 ```bash
-openclaw config set plugins.composio.enabled true
-openclaw config set plugins.composio.apiKey "your-api-key"
+openclaw config set plugins.composio.consumerKey "ck_your_key_here"
 ```
 
-Get your API key from [platform.composio.dev/settings](https://platform.composio.dev/settings).
+## How It Works
 
-## CLI Commands
+The plugin connects to Composio's MCP server at `https://connect.composio.dev/mcp` and registers all available tools directly into the OpenClaw agent. Tools are called by name — no extra search or execute steps needed.
 
-```bash
-# List available toolkits
-openclaw composio list
+If a tool returns an auth error, the agent will prompt you to connect that toolkit at [dashboard.composio.dev](https://dashboard.composio.dev).
 
-# Check connection status
-openclaw composio status
-openclaw composio status github
-
-# Connect to a toolkit (opens auth URL)
-openclaw composio connect github
-openclaw composio connect gmail
-
-# Disconnect from a toolkit
-openclaw composio disconnect github
-
-# Search for tools
-openclaw composio search "send email"
-openclaw composio search "create issue" --toolkit github
-```
-
-## Agent Tools
-
-The plugin provides four tools for agents:
-
-### `composio_search_tools`
-
-Search for tools matching a task description.
-
-```json
-{
-  "query": "send an email with attachment",
-  "toolkits": ["gmail"],
-  "limit": 5
-}
-```
-
-### `composio_execute_tool`
-
-Execute a single tool.
-
-```json
-{
-  "tool_slug": "GMAIL_SEND_EMAIL",
-  "arguments": {
-    "to": "user@example.com",
-    "subject": "Hello",
-    "body": "Message content"
-  }
-}
-```
-
-### `composio_multi_execute`
-
-Execute multiple tools in parallel (up to 50).
-
-```json
-{
-  "executions": [
-    { "tool_slug": "GITHUB_CREATE_ISSUE", "arguments": { "title": "Bug", "repo": "org/repo" } },
-    { "tool_slug": "SLACK_SEND_MESSAGE", "arguments": { "channel": "#dev", "text": "Issue created" } }
-  ]
-}
-```
-
-### `composio_manage_connections`
-
-Manage toolkit connections.
-
-```json
-{
-  "action": "status",
-  "toolkits": ["github", "gmail"]
-}
-```
-
-## Advanced Configuration
+## Configuration
 
 ```json
 {
   "plugins": {
-    "composio": {
-      "enabled": true,
-      "apiKey": "your-api-key",
-      "defaultUserId": "user_123",
-      "allowedToolkits": ["github", "gmail", "slack"],
-      "blockedToolkits": ["dangerous-toolkit"]
+    "entries": {
+      "composio": {
+        "enabled": true,
+        "config": {
+          "consumerKey": "ck_your_key_here"
+        }
+      }
     }
   }
 }
 ```
 
+| Option | Description | Default |
+|---|---|---|
+| `enabled` | Enable or disable the plugin | `true` |
+| `consumerKey` | Your Composio consumer key (`ck_...`) | — |
+| `mcpUrl` | MCP server URL (advanced) | `https://connect.composio.dev/mcp` |
+
 ## Links
 
 - [Composio Documentation](https://docs.composio.dev)
-- [Tool Router Overview](https://docs.composio.dev/tool-router/overview)
-- [Composio Platform](https://platform.composio.dev)
+- [Composio Dashboard](https://dashboard.composio.dev)
+- [MCP Protocol](https://modelcontextprotocol.io)

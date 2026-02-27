@@ -16,7 +16,22 @@ https://connect.composio.dev/mcp
 
 ## Authentication
 
-Requests must include a `x-composio-api-key` header (or `COMPOSIO_API_KEY` env var).
+Requests must include a `x-consumer-api-key` header with your **consumer API key**.
+
+> ⚠️ This is **not** the same as your standard Composio API key (`ak_...`) used for the Tool Router SDK.
+> Get your consumer API key from [dashboard.composio.dev/settings](https://dashboard.composio.dev/settings) — it starts with `ck_`.
+
+Example header:
+```
+x-consumer-api-key: ck_your_consumer_key_here
+```
+
+## Setup Flow
+
+1. Install the plugin via npm (`@composio/openclaw-plugin`)
+2. Log in at [dashboard.composio.dev](https://dashboard.composio.dev)
+3. Go to Settings and copy your consumer API key (starts with `ck_`)
+4. Add it to your OpenClaw config (see below)
 
 ## How to configure in OpenClaw
 
@@ -28,14 +43,12 @@ Add the Composio MCP server under `mcpServers` in your agent config:
     "composio": {
       "url": "https://connect.composio.dev/mcp",
       "headers": {
-        "x-composio-api-key": "<your-composio-api-key>"
+        "x-consumer-api-key": "ck_your_consumer_key_here"
       }
     }
   }
 }
 ```
-
-Get your API key from https://platform.composio.dev/settings.
 
 ## What the agent can do
 
@@ -50,3 +63,4 @@ Once connected, the agent can:
 - [Composio Tool Router Docs](https://docs.composio.dev/tool-router/overview)
 - [MCP Protocol](https://modelcontextprotocol.io)
 - [Composio Platform](https://platform.composio.dev)
+- [Composio Dashboard](https://dashboard.composio.dev)

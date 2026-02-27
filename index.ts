@@ -1,149 +1,94 @@
-import type { ClawdbotPluginApi } from "../../src/plugins/types.js";
-
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { composioPluginConfigSchema, parseComposioConfig } from "./src/config.js";
-import { createComposioClient } from "./src/client.js";
-import { createComposioSearchTool } from "./src/tools/search.js";
-import { createComposioExecuteTool } from "./src/tools/execute.js";
-import { createComposioMultiExecuteTool } from "./src/tools/multi-execute.js";
-import { createComposioConnectionsTool } from "./src/tools/connections.js";
-import { createComposioWorkbenchTool } from "./src/tools/workbench.js";
-import { createCompositoBashTool } from "./src/tools/bash.js";
-import { registerComposioCli } from "./src/cli.js";
 
-/**
- * Composio Tool Router Plugin for Clawdbot
- *
- * Provides access to 1000+ third-party tools through Composio's unified interface.
- * Tools include: Gmail, Slack, GitHub, Notion, Linear, Jira, and many more.
- *
- * Configuration (in clawdbot config):
- * ```json
- * {
- *   "plugins": {
- *     "composio": {
- *       "enabled": true,
- *       "apiKey": "your-composio-api-key"
- *     }
- *   }
- * }
- * ```
- *
- * Or set COMPOSIO_API_KEY environment variable.
- */
 const composioPlugin = {
   id: "composio",
-  name: "Composio Tool Router",
-  description:
-    "Access 1000+ third-party tools via Composio Tool Router. " +
-    "Search, authenticate, and execute tools for Gmail, Slack, GitHub, Notion, and more.",
+  name: "Composio",
+  description: "Access 1000+ third-party tools via Composio (Gmail, Slack, GitHub, Notion, and more).",
   configSchema: composioPluginConfigSchema,
 
-  register(api: ClawdbotPluginApi) {
+  async register(api: OpenClawPluginApi) {
     const config = parseComposioConfig(api.pluginConfig);
 
     if (!config.enabled) {
-      api.logger.debug("[composio] Plugin disabled in config");
+      api.logger.debug?.("[composio] Plugin disabled");
       return;
     }
 
-    if (!config.apiKey) {
+    if (!config.consumerKey) {
       api.logger.warn(
-        "[composio] No API key configured. Set COMPOSIO_API_KEY env var or plugins.composio.apiKey in config."
+        "[composio] No consumer key configured. Set COMPOSIO_CONSUMER_KEY env var or plugins.composio.consumerKey in config. Get your key (ck_...) from dashboard.composio.dev/settings"
       );
       return;
     }
 
-    let client: ReturnType<typeof createComposioClient> | null = null;
+    api.logger.info(`[composio] Connecting to ${config.mcpUrl}`);
 
-    const ensureClient = () => {
-      if (!client) {
-        client = createComposioClient(config);
+    try {
+      const { Client } = await import("@modelcontextprotocol/sdk/client/index.js");
+      const { StreamableHTTPClientTransport } = await import(
+        "@modelcontextprotocol/sdk/client/streamableHttp.js"
+      );
+
+      const mcpClient = new Client({ name: "openclaw", version: "1.0" });
+      await mcpClient.connect(
+        new StreamableHTTPClientTransport(new URL(config.mcpUrl), {
+          requestInit: {
+            headers: { "x-consumer-api-key": config.consumerKey },
+          },
+        })
+      );
+
+      const { tools } = await mcpClient.listTools();
+
+      for (const tool of tools) {
+        api.registerTool({
+          name: tool.name,
+          label: tool.name,
+          description: tool.description ?? "",
+          parameters: (tool.inputSchema ?? { type: "object", properties: {} }) as Record<string, unknown>,
+
+          async execute(_toolCallId: string, params: Record<string, unknown>) {
+            try {
+              const result = await mcpClient.callTool({ name: tool.name, arguments: params });
+
+              const text = Array.isArray(result.content)
+                ? result.content
+                    .map((c: { type: string; text?: string }) =>
+                      c.type === "text" ? (c.text ?? "") : JSON.stringify(c)
+                    )
+                    .join("\n")
+                : JSON.stringify(result);
+
+              return {
+                content: [{ type: "text" as const, text }],
+                details: result,
+              };
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : String(err);
+              return {
+                content: [{ type: "text" as const, text: `Error calling ${tool.name}: ${msg}` }],
+                details: { error: msg },
+              };
+            }
+          },
+        });
       }
-      return client;
-    };
 
-    // Register tools (lazily create client on first use)
-    api.registerTool({
-      ...createComposioSearchTool(ensureClient(), config),
-      execute: async (toolCallId, params) => {
-        return createComposioSearchTool(ensureClient(), config).execute(toolCallId, params);
-      },
-    });
-
-    api.registerTool({
-      ...createComposioExecuteTool(ensureClient(), config),
-      execute: async (toolCallId, params) => {
-        return createComposioExecuteTool(ensureClient(), config).execute(toolCallId, params);
-      },
-    });
-
-    api.registerTool({
-      ...createComposioMultiExecuteTool(ensureClient(), config),
-      execute: async (toolCallId, params) => {
-        return createComposioMultiExecuteTool(ensureClient(), config).execute(toolCallId, params);
-      },
-    });
-
-    api.registerTool({
-      ...createComposioConnectionsTool(ensureClient(), config),
-      execute: async (toolCallId, params) => {
-        return createComposioConnectionsTool(ensureClient(), config).execute(toolCallId, params);
-      },
-    });
-
-    api.registerTool({
-      ...createComposioWorkbenchTool(ensureClient(), config),
-      execute: async (toolCallId, params) => {
-        return createComposioWorkbenchTool(ensureClient(), config).execute(toolCallId, params);
-      },
-    });
-
-    api.registerTool({
-      ...createCompositoBashTool(ensureClient(), config),
-      execute: async (toolCallId, params) => {
-        return createCompositoBashTool(ensureClient(), config).execute(toolCallId, params);
-      },
-    });
-
-    // Register CLI commands
-    api.registerCli(
-      ({ program }) =>
-        registerComposioCli({
-          program,
-          client: ensureClient(),
-          config,
-          logger: api.logger,
-        }),
-      { commands: ["composio"] }
-    );
-
-    // Inject agent instructions via before_agent_start hook
-    api.on("before_agent_start", () => {
-      return {
+      api.on("before_agent_start", () => ({
         prependContext: `<composio-tools>
-You have access to Composio Tool Router, which provides 1000+ third-party integrations (Gmail, Slack, GitHub, Notion, Linear, Jira, HubSpot, Google Drive, etc.).
-
-## How to use Composio tools
-
-1. **Search first**: Use \`composio_search_tools\` to find tools matching the user's task. Search by describing what you want to do (e.g., "send email", "create github issue").
-
-2. **Check connections**: Before executing, use \`composio_manage_connections\` with action="status" to verify the required toolkit is connected. If not connected, use action="create" to generate an auth URL for the user.
-
-3. **Execute tools**: Use \`composio_execute_tool\` with the tool_slug from search results and arguments matching the tool's schema. For multiple operations, use \`composio_multi_execute\` to run up to 50 tools in parallel.
-
-4. **Remote processing**: For large responses or bulk operations, use \`composio_workbench\` to run Python code in a remote Jupyter sandbox with helpers like run_composio_tool(), invoke_llm(), etc. Use \`composio_bash\` for shell commands in the remote sandbox.
-
-## Important notes
-- Tool slugs are uppercase (e.g., GMAIL_SEND_EMAIL, GITHUB_CREATE_ISSUE)
-- Always use exact tool_slug values from search results - do not invent slugs
-- Check the parameters schema from search results before executing
-- If a tool fails with auth errors, prompt the user to connect the toolkit
-- Use workbench/bash tools when processing data stored in remote files or scripting bulk operations
+You have access to Composio, which provides 1000+ third-party integrations including Gmail, Slack, GitHub, Notion, Linear, Jira, HubSpot, Google Drive, and more.
+The tools are already registered — call them directly by name.
+If a tool returns an auth error, let the user know they need to connect that toolkit at dashboard.composio.dev.
 </composio-tools>`,
-      };
-    });
+      }));
 
-    api.logger.info("[composio] Plugin registered with 6 tools and CLI commands");
+      api.logger.info(`[composio] Ready — ${tools.length} tools registered`);
+    } catch (err) {
+      api.logger.error(
+        `[composio] Failed to connect: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
   },
 };
 

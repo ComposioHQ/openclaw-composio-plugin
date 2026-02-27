@@ -1,9 +1,16 @@
 {
   "name": "@composio/openclaw-plugin",
-  "version": "2026.1.26",
+  "version": "0.0.1",
   "type": "module",
   "description": "OpenClaw Composio plugin - access 1000+ third-party tools via Composio Tool Router",
-  "keywords": ["openclaw", "composio", "tool-router", "agents", "mcp", "plugin"],
+  "keywords": [
+    "openclaw",
+    "composio",
+    "tool-router",
+    "agents",
+    "mcp",
+    "plugin"
+  ],
   "homepage": "https://github.com/ComposioHQ/openclaw-composio-plugin",
   "repository": {
     "type": "git",
@@ -18,11 +25,12 @@
     "README.md"
   ],
   "openclaw": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
   },
   "dependencies": {
-    "@composio/core": "latest",
-    "@sinclair/typebox": "0.34.47",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "zod": "^4.3.6"
   }
 }
