@@ -14,16 +14,16 @@ openclaw plugins install @composio/openclaw-plugin
 2. Choose your preferred client (OpenClaw, Claude Code, Cursor, etc.)
 3. Copy your consumer key (`ck_...`)
 
-### Option 1: Environment Variable
+### Via OpenClaw Config
 
 ```bash
-export COMPOSIO_CONSUMER_KEY=ck_your_key_here
+openclaw config set plugins.entries.composio.config.consumerKey "ck_your_key_here"
 ```
 
-### Option 2: OpenClaw Config
+After setting your key, restart the gateway to load the plugin:
 
 ```bash
-openclaw config set plugins.composio.consumerKey "ck_your_key_here"
+openclaw gateway restart
 ```
 
 ## How It Works
