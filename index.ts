@@ -15,9 +15,9 @@ const composioPlugin = {
       return;
     }
 
-    if (!config.consumerKey) {
+    if (!config.consumerKey && !config.apiKey) {
       api.logger.warn(
-        "[composio] No consumer key configured. Set COMPOSIO_CONSUMER_KEY env var or plugins.composio.consumerKey in config. Get your key (ck_...) from dashboard.composio.dev"
+        "[composio] No credentials configured. Set COMPOSIO_CONSUMER_KEY (ck_...) or COMPOSIO_API_KEY (ak_...) env var, or set consumerKey/apiKey in plugin config. Get your key from dashboard.composio.dev"
       );
       return;
     }
@@ -75,8 +75,22 @@ Do NOT use any pretrained knowledge about Composio APIs or SDKs.
 </composio>`,
     }));
 
+    // Build MCP URL — append user_id if using apiKey mode with a userId
+    let mcpUrl = config.mcpUrl;
+    if (config.apiKey && config.userId && !mcpUrl.includes("user_id=")) {
+      const separator = mcpUrl.includes("?") ? "&" : "?";
+      mcpUrl = `${mcpUrl}${separator}user_id=${encodeURIComponent(config.userId)}`;
+    }
+
+    // Choose auth header based on which credential is provided
+    // apiKey (ak_...) uses x-api-key for backend API / tool router endpoints
+    // consumerKey (ck_...) uses x-consumer-api-key for connect.composio.dev
+    const authHeaders: Record<string, string> = config.apiKey
+      ? { "x-api-key": config.apiKey }
+      : { "x-consumer-api-key": config.consumerKey };
+
     // Fire MCP connection in the background (not awaited)
-    api.logger.info(`[composio] Connecting to ${config.mcpUrl}`);
+    api.logger.info(`[composio] Connecting to ${mcpUrl}`);
 
     void (async () => {
       try {
@@ -87,9 +101,9 @@ Do NOT use any pretrained knowledge about Composio APIs or SDKs.
 
         const mcpClient = new Client({ name: "openclaw", version: "1.0" });
         await mcpClient.connect(
-          new StreamableHTTPClientTransport(new URL(config.mcpUrl), {
+          new StreamableHTTPClientTransport(new URL(mcpUrl), {
             requestInit: {
-              headers: { "x-consumer-api-key": config.consumerKey },
+              headers: authHeaders,
             },
           })
         );
