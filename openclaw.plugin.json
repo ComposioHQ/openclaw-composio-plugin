@@ -17,9 +17,17 @@
         "type": "string",
         "description": "Your Composio consumer key (ck_...) from dashboard.composio.dev/settings"
       },
+      "apiKey": {
+        "type": "string",
+        "description": "Your Composio API key (ak_...) for backend API / tool router endpoints. Use instead of consumerKey for per-user support."
+      },
       "mcpUrl": {
         "type": "string",
-        "description": "Composio MCP server URL (default: https://connect.composio.dev/mcp)"
+        "description": "Composio MCP server URL (default: https://connect.composio.dev/mcp). For per-user: use a tool router URL."
+      },
+      "userId": {
+        "type": "string",
+        "description": "Per-user identifier for scoping connected accounts. Appended as ?user_id= when using apiKey."
       }
     }
   },
@@ -33,9 +41,19 @@
       "help": "Your Composio consumer key (ck_...) from dashboard.composio.dev/settings",
       "sensitive": true
     },
+    "apiKey": {
+      "label": "API Key",
+      "help": "Your Composio API key (ak_...) for per-user tool router sessions",
+      "sensitive": true
+    },
     "mcpUrl": {
       "label": "MCP Server URL",
       "help": "Composio MCP server URL (default: https://connect.composio.dev/mcp)",
+      "advanced": true
+    },
+    "userId": {
+      "label": "User ID",
+      "help": "Per-user identifier for scoping connected accounts",
       "advanced": true
     }
   }
