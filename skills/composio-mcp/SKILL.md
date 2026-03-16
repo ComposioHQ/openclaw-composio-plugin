@@ -35,7 +35,11 @@ x-consumer-api-key: ck_your_consumer_key_here
    ```bash
    openclaw config set plugins.entries.composio.config.consumerKey "ck_your_key_here"
    ```
-5. Restart the gateway:
+5. Allow Composio tools (works with any tool profile):
+   ```bash
+   openclaw config set tools.alsoAllow '["composio"]'
+   ```
+6. Restart the gateway:
    ```bash
    openclaw gateway restart
    ```

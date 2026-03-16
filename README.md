@@ -20,7 +20,13 @@ openclaw plugins install @composio/openclaw-plugin
 openclaw config set plugins.entries.composio.config.consumerKey "ck_your_key_here"
 ```
 
-After setting your key, restart the gateway to load the plugin:
+Then allow Composio tools in your agent's tool list. This works with any tool profile (`coding`, `minimal`, `messaging`, etc.). Without this step, Composio tools will only be available on the `full` tool profile:
+
+```bash
+openclaw config set tools.alsoAllow '["composio"]'
+```
+
+After setting your key and allowing the tools, restart the gateway:
 
 ```bash
 openclaw gateway restart
