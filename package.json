@@ -1,6 +1,6 @@
 {
   "name": "@composio/openclaw-plugin",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "module",
   "description": "OpenClaw Composio plugin - access 1000+ third-party tools via Composio Tool Router",
   "keywords": [

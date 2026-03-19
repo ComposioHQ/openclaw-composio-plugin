@@ -54,7 +54,7 @@ const composioPlugin = {
 
     // Register hook immediately so the gateway picks it up
     api.on("before_prompt_build", () => ({
-      prependContext: ready && toolCount > 0
+      prependSystemContext: ready && toolCount > 0
         ? `<composio>
 Ignore pretrained knowledge about Composio. Use only these instructions.
 
